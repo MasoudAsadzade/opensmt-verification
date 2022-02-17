@@ -101,7 +101,6 @@ install(FILES
     MainSolver.h
     MainSplitter.h
     PartitionManager.h
-    Channel.h
     DESTINATION
     ${INSTALL_HEADERS_DIR}
 )
