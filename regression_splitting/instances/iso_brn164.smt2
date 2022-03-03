@@ -6,8 +6,6 @@ http://www.cs.bham.ac.uk/~vxs/quasigroups/benchmark/
 |)
 
 (set-option :split-num 16)
-(set-option :split-format smt2)
-(set-option :split-format-length "brief")
 (set-option :output-dir "/tmp/split-test")
 
 (set-info :smt-lib-version 2.0)
