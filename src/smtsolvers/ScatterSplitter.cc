@@ -13,10 +13,6 @@
 #include "SystemQueries.h"
 #include "ReportUtils.h"
 
-namespace opensmt
-{
-    extern bool stop;
-}
 
 ScatterSplitter::ScatterSplitter(SMTConfig & c, THandler & t, Channel & ch)
     : SimpSMTSolver         (c, t)
@@ -69,7 +65,7 @@ bool ScatterSplitter::okContinue() const {
     if (!CoreSMTSolver::okContinue()) {
         return false;
     } else if (conflicts % 1000 == 0 and splitContext.resourceLimitReached(decisions)) {
-        opensmt::stop = true;
+        channel.setShouldStop();
         return false;
     } else if (static_cast<int>(splitContext.getCurrentSplitCount()) == splitContext.splitTargetNumber() - 1) {
         return false;
@@ -82,7 +78,7 @@ void ScatterSplitter::notifyEnd() {
     splitContext.insertSplitData(std::move(data));
     assert(result == l_False);
     (void)result;
-    opensmt::stop = true;
+    channel.setShouldStop();
 }
 
 lbool ScatterSplitter::solve_() {
@@ -95,7 +91,7 @@ lbool ScatterSplitter::solve_() {
 
 lbool ScatterSplitter::zeroLevelConflictHandler() {
     if (splitContext.hasCurrentSplits()) {
-        opensmt::stop = true;
+        channel.setShouldStop();
         return l_Undef;
     } else {
         return CoreSMTSolver::zeroLevelConflictHandler();
@@ -167,7 +163,7 @@ CoreSMTSolver::ConsistencyAction ScatterSplitter::notifyConsistency() {
         auto [data, result] = createSplitAndBlockAssumptions();
         splitContext.insertSplitData(std::move(data));
         if (result == l_False) { // Rest is unsat
-            opensmt::stop = true;
+            channel.setShouldStop();
             return ConsistencyAction::ReturnUndef;
         } else {
             splitContext.enterTuningCycle(decisions);
