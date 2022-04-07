@@ -1464,6 +1464,7 @@ lbool CoreSMTSolver::search(int nof_conflicts, int nof_learnts)
     while (okContinue()) {
 
         CRef confl = propagate();
+        shallLearnClauses();
         if (confl != CRef_Undef) {
             // CONFLICT
             conflicts++;
