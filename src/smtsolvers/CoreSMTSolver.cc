@@ -1382,7 +1382,7 @@ void CoreSMTSolver::popBacktrackPoint()
 
 bool CoreSMTSolver::okContinue() const
 {
-    return not opensmt::stop;
+    return true;
 }
 
 void CoreSMTSolver::learntSizeAdjust() {
@@ -1603,7 +1603,7 @@ lbool CoreSMTSolver::search(int nof_conflicts, int nof_learnts)
                     // Model found:
                     return l_True;
             }
-            
+
             assert(value(next) == l_Undef);
             // Increase decision level and enqueue 'next'
             assert(value(next) == l_Undef);
@@ -1760,7 +1760,7 @@ lbool CoreSMTSolver::solve_()
 
     if (config.dryrun())
         stop = true;
-    while (status == l_Undef && !opensmt::stop && !this->stop) {
+    while (status == l_Undef && okContinue() && !this->stop) {
         // Print some information. At every restart for
         // standard mode or any 2^n intervarls for luby
         // restarts
@@ -1798,7 +1798,7 @@ lbool CoreSMTSolver::solve_()
             model[i] = value(i);
         }
     } else {
-        assert(opensmt::stop || status == l_False || this->stop);
+        assert(not okContinue() || status == l_False || this->stop);
     }
 
     // We terminate
