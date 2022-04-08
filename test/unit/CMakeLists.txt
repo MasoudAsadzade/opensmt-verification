@@ -237,3 +237,11 @@ target_sources(NameProtectionTest
 
 target_link_libraries(NameProtectionTest OpenSMT gtest gtest_main)
 gtest_add_tests(TARGET NameProtectionTest)
+
+add_executable(SolverBranchBoundary)
+target_sources(SolverBranchBoundary
+        PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/test_SolverBranchBoundary.cc"
+        )
+
+target_link_libraries(SolverBranchBoundary OpenSMT gtest gtest_main PTPLib::PTPLib)
+gtest_add_tests(TARGET SolverBranchBoundary)
