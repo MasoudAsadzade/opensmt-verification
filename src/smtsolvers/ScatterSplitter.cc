@@ -10,8 +10,6 @@
 #include "SystemQueries.h"
 #include "ReportUtils.h"
 
-#include "SystemQueries.h"
-#include "ReportUtils.h"
 
 namespace opensmt
 {
