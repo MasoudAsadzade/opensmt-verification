@@ -2,7 +2,7 @@
 set(PTPLib_repository "https://github.com/usi-verification-and-security/ptplib.git")
 set(PTPLib_branch ${branch})
 if(NOT PTPLib_branch)
-	set(PTPLib_branch master)
+	set(PTPLib_branch dequeOfEvents)
 endif()
 
 message(STATUS "OpenSMT is fetching PTPLib from " ${PTPLib_repository})
