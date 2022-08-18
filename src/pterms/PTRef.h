@@ -44,6 +44,10 @@ struct PTRefHash {
         return (uint32_t)s.x; }
 };
 
+template<> struct std::hash<PTRef> {
+    std::size_t operator()(PTRef tr) const { return PTRefHash()(tr); }
+};
+
 struct PTRefPairHash {
     std::size_t operator () (std::pair<PTRef, PTRef> p) const {
         std::hash<uint32_t> hasher;
