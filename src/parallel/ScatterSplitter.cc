@@ -12,7 +12,9 @@ ScatterSplitter::ScatterSplitter(SMTConfig & c, THandler & t, PTPLib::net::Chann
 : SimpSMTSolver         (c, t)
 , Splitter              (c, ch)
 , nodeCounter           (t.getLogic(), PTPLib::common::STATS.MAX_SIZE)
-{}
+{
+    expose_watch.start();
+}
 
 bool ScatterSplitter::branchLitRandom() {
     return ((not splitContext.isInSplittingCycle() and opensmt::drand(random_seed) < random_var_freq) or
@@ -321,7 +323,6 @@ void ScatterSplitter::exposeLongerClauses(std::vector<PTPLib::net::Lemma> & lear
 }
 
 bool ScatterSplitter::exposeClauses(std::vector<PTPLib::net::Lemma> & learnedLemmas) {
-    exposeUnitClauses(learnedLemmas);
     exposeLongerClauses(learnedLemmas);
     return not learnedLemmas.empty();
 }
@@ -336,20 +337,50 @@ void ScatterSplitter::runPeriodic()
     if (not getChannel().isClauseShareMode()) return;
     std::vector<PTPLib::net::Lemma> toPublishLemmas;
     if (getChannel().shouldLearnClauses()) {
-        getChannel().clearShouldLearnClauses();
+//        getChannel().clearShouldLearnClauses();
+        if (expose_watch.elapsed_time_second() > 15) {
+            expose_counter++;
+            if (expose_counter == 3) {
+                PTPLib::common::synced_stream syncedStream1;
+                PTPLib::common::PrintStopWatch watch("third expose time:", syncedStream1);
 
-        if (exposeClauses(toPublishLemmas)) {
-            {
-                std::unique_lock<std::mutex> lk(getChannel().getMutex());
-                if (not lk.owns_lock()) {
-                    throw PTPLib::common::Exception(__FILE__, __LINE__,
-                                                    ";assert: clause Learning couldn't take the lock");
+                if (exposeClauses(toPublishLemmas)) {
+
+                    {
+                        std::unique_lock<std::mutex> lk(getChannel().getMutex());
+                        if (not lk.owns_lock()) {
+                            throw PTPLib::common::Exception(__FILE__, __LINE__,
+                                                            ";assert: clause Learning couldn't take the lock");
+                        }
+                        getChannel().insert_learned_clause(std::move(toPublishLemmas));
+                    }
+                    if (syncedStream)
+                        syncedStream->println(getChannel().isColorMode() ? PTPLib::common::Color::FG_Green
+                                                                         : PTPLib::common::Color::FG_DEFAULT,
+                                              "[t SEARCH ] -------------- add learned clauses to channel buffer, Size : ",
+                                              toPublishLemmas.size());
                 }
-                getChannel().insert_learned_clause(std::move(toPublishLemmas));
+
             }
-            if (syncedStream)
-                syncedStream->println(getChannel().isColorMode() ? PTPLib::common::Color::FG_Green : PTPLib::common::Color::FG_DEFAULT,
-                           "[t SEARCH ] -------------- add learned clauses to channel buffer, Size : ", toPublishLemmas.size());
+            if (expose_counter == 3) exit(EXIT_SUCCESS);
+            if (exposeClauses(toPublishLemmas)) {
+
+                {
+                    std::unique_lock<std::mutex> lk(getChannel().getMutex());
+                    if (not lk.owns_lock()) {
+                        throw PTPLib::common::Exception(__FILE__, __LINE__,
+                                                        ";assert: clause Learning couldn't take the lock");
+                    }
+                    getChannel().insert_learned_clause(std::move(toPublishLemmas));
+                }
+                if (syncedStream)
+                    syncedStream->println(getChannel().isColorMode() ? PTPLib::common::Color::FG_Green
+                                                                     : PTPLib::common::Color::FG_DEFAULT,
+                                          "[t SEARCH ] -------------- add learned clauses to channel buffer, Size : ",
+                                          toPublishLemmas.size());
+            }
+            expose_watch.reset();
+            expose_watch.start();
         }
     }
 }

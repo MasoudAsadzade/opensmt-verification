@@ -131,6 +131,16 @@ int main( int argc, char * argv[] )
                 opensmt_error( "SMTLIB 1.2 format is not supported in this version, sorry" );
             }
             else if ( extension != NULL && strcmp( extension, ".smt2" ) == 0 ) {
+                const char * msg;
+                if (!c.setOption(SMTConfig::o_sat_scatter_split, SMTOption(":scatter-split"), msg))
+                    fprintf(stderr, "Error setting scatter_split: %s\n", msg);
+                if (!c.setOption(SMTConfig::o_sat_solver_limit, SMTOption(INT_MAX), msg))
+                    fprintf(stderr, "Error setting solver_limit: %s\n", msg);
+                channel->setClauseShareMode();
+                PTPLib::net::Header header;
+                header[PTPLib::common::Param.NODE] = "[]";
+                header[PTPLib::common::Param.NAME] = c.getInstanceName();
+                channel->set_current_header(header);
                 interpreter.interpFile(fin);
             }
             else
